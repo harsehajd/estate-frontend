@@ -1,4 +1,5 @@
 import { Inter } from "next/font/google";
+import { Providers } from "./providers";
 import "./globals.css";
 
 const inter = Inter({
@@ -8,8 +9,8 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: "Estate Agent",
-  description: "Find your dream home",
+  title: "Estate - Find Your Dream Home",
+  description: "Discover thousands of properties for sale and rent across the country",
 };
 
 export default function RootLayout({
@@ -20,7 +21,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className="font-sans antialiased">
-        {children}
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

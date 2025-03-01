@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { propertyService } from "@/services/api";
 import PropertySearch from "@/components/PropertySearch";
 import PropertyCard from "@/components/PropertyCard";
+import { SaveSearchButton } from "@/components/SaveSearchButton";
 
 interface Property {
   id: string;
@@ -67,7 +68,10 @@ export default function SearchPage() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold mb-8">Property Search Results</h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold">Search Results</h1>
+        <SaveSearchButton searchParams={searchParams} />
+      </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-1">

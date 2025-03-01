@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Heart } from "lucide-react";
+import { BookmarkPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -16,30 +16,27 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-interface SavePropertyButtonProps {
-  propertyId: string;
+interface SaveSearchButtonProps {
+  searchParams: Record<string, string>;
   variant?: "default" | "outline" | "ghost";
-  isSaved?: boolean;
 }
 
-export default function SavePropertyButton({ 
-  propertyId, 
-  variant = "default",
-  isSaved = false 
-}: SavePropertyButtonProps) {
+export default function SaveSearchButton({ 
+  searchParams, 
+  variant = "outline" 
+}: SaveSearchButtonProps) {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [showAuthDialog, setShowAuthDialog] = useState(false);
-  const [saved, setSaved] = useState(isSaved);
 
-  const handleSaveProperty = async () => {
+  const handleSaveSearch = async () => {
     if (status === "authenticated") {
-      // If user is logged in, save the property
+      // If user is logged in, save the search
       try {
-        // API call to save property would go here
-        setSaved(!saved);
+        // API call to save search would go here
+        alert("Search saved successfully!");
       } catch (error) {
-        console.error("Error saving property:", error);
+        console.error("Error saving search:", error);
       }
     } else {
       // If user is not logged in, show the auth dialog
@@ -51,19 +48,19 @@ export default function SavePropertyButton({
     <>
       <Button
         variant={variant}
-        onClick={handleSaveProperty}
-        className={`flex items-center ${saved ? "text-red-500" : ""}`}
+        onClick={handleSaveSearch}
+        className="flex items-center"
       >
-        <Heart className={`h-5 w-5 mr-1 ${saved ? "fill-current" : ""}`} />
-        {saved ? "Saved" : "Save"}
+        <BookmarkPlus className="h-5 w-5 mr-1" />
+        Save Search
       </Button>
 
       <AlertDialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Sign in to save properties</AlertDialogTitle>
+            <AlertDialogTitle>Sign in to save searches</AlertDialogTitle>
             <AlertDialogDescription>
-              Create an account or sign in to save properties and get personalized recommendations.
+              Create an account or sign in to save your search criteria and get notified when new properties match.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
