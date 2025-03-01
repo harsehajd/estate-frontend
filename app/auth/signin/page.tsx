@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -21,24 +20,11 @@ export default function SignIn() {
     setIsLoading(true);
     setError("");
 
-    try {
-      const result = await signIn("credentials", {
-        redirect: false,
-        email,
-        password,
-      });
-
-      if (result?.error) {
-        setError("Invalid email or password");
-      } else {
-        router.push("/dashboard");
-        router.refresh();
-      }
-    } catch (error) {
-      setError("An error occurred. Please try again.");
-    } finally {
+    // Simulate login
+    setTimeout(() => {
+      router.push("/dashboard");
       setIsLoading(false);
-    }
+    }, 1000);
   };
 
   return (

@@ -7,17 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { authService } from "@/services/api";
 
-export default function RegisterPage() {
+export default function Register() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
-    phone: "",
   });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -38,30 +35,11 @@ export default function RegisterPage() {
       return;
     }
 
-    try {
-      await authService.register({
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-        phone: formData.phone || undefined,
-      });
-      
-      // Redirect to login page after successful registration
-      router.push("/auth/login?registered=true");
-    } catch (err: any) {
-      setError(err.message || "Registration failed. Please try again.");
-    } finally {
+    // Simulate registration
+    setTimeout(() => {
+      router.push("/auth/signin?registered=true");
       setIsLoading(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    try {
-      await authService.loginWithGoogle();
-      // The redirect will be handled by Supabase
-    } catch (err: any) {
-      setError(err.message || "Failed to login with Google.");
-    }
+    }, 1000);
   };
 
   return (
@@ -102,16 +80,6 @@ export default function RegisterPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone (optional)</Label>
-              <Input
-                id="phone"
-                name="phone"
-                placeholder="+1 (555) 123-4567"
-                value={formData.phone}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
@@ -141,7 +109,7 @@ export default function RegisterPage() {
         <CardFooter className="flex justify-center">
           <p className="text-sm text-gray-500">
             Already have an account?{" "}
-            <Link href="/auth/login" className="text-blue-600 hover:underline">
+            <Link href="/auth/signin" className="text-blue-600 hover:underline">
               Sign in
             </Link>
           </p>
