@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { propertyService } from "@/services/api";
 import PropertySearch from "@/components/PropertySearch";
+import PropertyCard from "@/components/PropertyCard";
 
 interface Property {
   id: string;
@@ -25,40 +25,45 @@ export default function SearchPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [properties, setProperties] = useState<Property[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [hasSearched, setHasSearched] = useState(false);
 
   useEffect(() => {
-    const fetchProperties = async () => {
-      setLoading(true);
-      setError("");
-      
-      try {
-        // Convert searchParams to object
-        const params: Record<string, string> = {};
-        searchParams.forEach((value, key) => {
-          params[key] = value;
-        });
-        
-        // Handle priorities separately if needed
-        if (params.priorities) {
-          const prioritiesList = params.priorities.split(',');
-          console.log('Selected priorities:', prioritiesList);
-          // You can use these priorities to filter or sort results
-        }
-        
-        const data = await propertyService.searchProperties(params);
-        setProperties(data);
-      } catch (err: any) {
-        console.error("Failed to fetch properties:", err);
-        setError("Failed to load properties. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProperties();
+    // Only fetch properties if there are search parameters
+    if (searchParams.size > 0) {
+      fetchProperties();
+      setHasSearched(true);
+    }
   }, [searchParams]);
+
+  const fetchProperties = async () => {
+    setLoading(true);
+    setError("");
+    
+    try {
+      // Convert searchParams to object
+      const params: Record<string, string> = {};
+      searchParams.forEach((value, key) => {
+        params[key] = value;
+      });
+      
+      // Handle priorities separately if needed
+      if (params.priorities) {
+        const prioritiesList = params.priorities.split(',');
+        console.log('Selected priorities:', prioritiesList);
+        // You can use these priorities to filter or sort results
+      }
+      
+      const data = await propertyService.searchProperties(params);
+      setProperties(data);
+    } catch (err: any) {
+      console.error("Failed to fetch properties:", err);
+      setError("Failed to load properties. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -80,45 +85,19 @@ export default function SearchPage() {
             </div>
           ) : properties.length === 0 ? (
             <div className="text-center py-12 bg-gray-50 rounded-lg">
-              <p className="text-xl text-gray-500">No properties found matching your criteria</p>
-              <p className="mt-2 text-gray-400">Try adjusting your search filters</p>
+              {hasSearched ? (
+                <>
+                  <p className="text-xl text-gray-500">No properties found matching your criteria</p>
+                  <p className="mt-2 text-gray-400">Try adjusting your search filters</p>
+                </>
+              ) : (
+                <p className="text-xl text-gray-500">Use the search form to find properties</p>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {properties.map((property) => (
-                <Card key={property.id} className="overflow-hidden">
-                  {property.image_url && (
-                    <div className="h-48 overflow-hidden">
-                      <img 
-                        src={property.image_url} 
-                        alt={property.title} 
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                  <CardHeader>
-                    <CardTitle>{property.title}</CardTitle>
-                    <CardDescription>${property.price.toLocaleString()}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-700 mb-2">{property.address}</p>
-                    <div className="flex space-x-4 text-sm text-gray-500">
-                      <span>{property.bedrooms} beds</span>
-                      <span>{property.bathrooms} baths</span>
-                      <span>{property.area} sqft</span>
-                      {property.type && <span>{property.type}</span>}
-                    </div>
-                    <p className="mt-4 text-gray-600 line-clamp-2">{property.description}</p>
-                  </CardContent>
-                  <CardFooter>
-                    <Button 
-                      onClick={() => router.push(`/properties/${property.id}`)}
-                      className="w-full"
-                    >
-                      View Details
-                    </Button>
-                  </CardFooter>
-                </Card>
+                <PropertyCard key={property.id} property={property} />
               ))}
             </div>
           )}

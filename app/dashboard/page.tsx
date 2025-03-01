@@ -112,11 +112,20 @@ export default function Dashboard() {
         <PropertySearch />
       </div>
 
-      {error && (
+      <div className="mb-8 flex space-x-4">
+        <Button variant="outline" onClick={() => router.push("/dashboard/saved")}>
+          Saved Properties
+        </Button>
+        <Button variant="outline" onClick={() => router.push("/properties/search")}>
+          Search Properties
+        </Button>
+      </div>
+
+      {error && properties.length === 0 ? (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
           {error}
         </div>
-      )}
+      ) : null}
 
       <h2 className="text-2xl font-semibold mb-4">Your Properties</h2>
 

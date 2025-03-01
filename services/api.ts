@@ -116,7 +116,27 @@ export const propertyService = {
   deleteProperty: async (id: string) => {
     const response = await api.delete(`/properties/${id}`);
     return response.data;
-  }
+  },
+  
+  saveProperty: async (propertyId: string) => {
+    const response = await api.post('/user/saved-properties', { propertyId });
+    return response.data;
+  },
+  
+  unsaveProperty: async (propertyId: string) => {
+    const response = await api.delete(`/user/saved-properties/${propertyId}`);
+    return response.data;
+  },
+  
+  getSavedProperties: async () => {
+    const response = await api.get('/user/saved-properties');
+    return response.data;
+  },
+  
+  checkIfSaved: async (propertyId: string) => {
+    const response = await api.get(`/user/saved-properties/check/${propertyId}`);
+    return response.data.isSaved;
+  },
 };
 
 export default api; 
