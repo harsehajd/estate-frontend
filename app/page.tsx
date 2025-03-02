@@ -1,135 +1,257 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { ArrowRight, Home, Search, Heart, Shield, MapPin, TrendingUp } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import PropertySearch from "@/components/PropertySearch";
-import Navigation from "@/components/Navigation";
+import { useState } from "react";
+import Image from "next/image";
 
-export default function HomePage() {
-  const [isLoaded, setIsLoaded] = useState(false);
+export default function Home() {
+  const [query, setQuery] = useState("");
+  const [expandedQuery, setExpandedQuery] = useState("");
+  const [clarifyingQuestions, setClarifyingQuestions] = useState<string[]>([]);
+  const [responses, setResponses] = useState<string[]>([]);
+  const [properties, setProperties] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [step, setStep] = useState<"initial" | "questions" | "results">("initial");
 
-  useEffect(() => {
-    setIsLoaded(true);
-  }, []);
+  // Handle the initial query submission
+  const handleQuerySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!query.trim()) return;
 
-  const features = [
-    {
-      icon: <Home className="h-10 w-10 text-blue-500" />,
-      title: "Find Your Dream Home",
-      description: "Browse thousands of properties that match your preferences and budget."
-    },
-    {
-      icon: <Heart className="h-10 w-10 text-red-500" />,
-      title: "Save Your Favorites",
-      description: "Keep track of properties you love and get updates on price changes."
-    },
-    {
-      icon: <MapPin className="h-10 w-10 text-green-500" />,
-      title: "Explore Neighborhoods",
-      description: "Discover detailed information about schools, safety, and amenities."
-    },
-    {
-      icon: <TrendingUp className="h-10 w-10 text-purple-500" />,
-      title: "Market Insights",
-      description: "Stay informed with the latest trends and data in the real estate market."
+    setLoading(true);
+    setError("");
+    
+    try {
+      const response = await fetch("http://localhost:8000/api/expand-query", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ query }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setExpandedQuery(data.expanded_query);
+      setClarifyingQuestions(data.clarifying_questions);
+      setResponses(new Array(data.clarifying_questions.length).fill(""));
+      setStep("questions");
+    } catch (err) {
+      setError(`Error: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  // Handle the submission of responses to clarifying questions
+  const handleResponsesSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (responses.some(r => !r.trim())) {
+      setError("Please answer all questions");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    
+    try {
+      const response = await fetch("http://localhost:8000/api/search-with-responses", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          original_query: query,
+          responses,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setProperties(data);
+      setStep("results");
+    } catch (err) {
+      setError(`Error: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle response input changes
+  const handleResponseChange = (index: number, value: string) => {
+    const newResponses = [...responses];
+    newResponses[index] = value;
+    setResponses(newResponses);
+  };
+
+  // Reset the search
+  const handleReset = () => {
+    setQuery("");
+    setExpandedQuery("");
+    setClarifyingQuestions([]);
+    setResponses([]);
+    setProperties([]);
+    setError("");
+    setStep("initial");
+  };
 
   return (
-    <div className="min-h-screen">
-      <Navigation />
-      
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute inset-0 bg-[url('/images/hero-pattern.svg')] opacity-10"></div>
-        </div>
-        
-        <div className="container mx-auto px-4 py-20 relative z-10">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 animate-fade-in">
-              Find Your Perfect Place to Call Home
-            </h1>
-            <p className="text-xl md:text-2xl mb-10 text-blue-100 animate-fade-in-delay">
-              Discover thousands of properties for sale and rent across the country
-            </p>
-          </div>
-          
-          <div className="max-w-5xl mx-auto mt-8 animate-fade-in-delay-2">
-            <PropertySearch />
-          </div>
-        </div>
-        
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" className="w-full h-auto">
-            <path fill="#ffffff" fillOpacity="1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,149.3C960,160,1056,160,1152,138.7C1248,117,1344,75,1392,53.3L1440,32L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
-          </svg>
-        </div>
-      </section>
+    <div className="min-h-screen p-8 pb-20 gap-8 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+      <header className="mb-8 flex flex-col items-center">
+        <h1 className="text-2xl font-bold mb-2">HomeHarvest Property Search</h1>
+        <p className="text-gray-600 dark:text-gray-400 text-center">
+          Search for real estate properties using natural language
+        </p>
+      </header>
 
-      {/* Features Section */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose Our Platform</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              We make finding your next home easier than ever with powerful tools and personalized recommendations
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-xl shadow-lg p-8 text-center hover:shadow-xl transition-all duration-300 border border-gray-100 hover:-translate-y-2"
+      <main className="max-w-3xl mx-auto">
+        {step === "initial" && (
+          <form onSubmit={handleQuerySubmit} className="mb-8">
+            <div className="flex flex-col gap-4">
+              <label htmlFor="query" className="text-lg font-medium">
+                What kind of property are you looking for?
+              </label>
+              <input
+                id="query"
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="e.g., Find me a 3 bedroom house in Seattle under $800k"
+                className="p-3 border rounded-md dark:bg-gray-800 dark:border-gray-700"
+                required
+              />
+              <button
+                type="submit"
+                disabled={loading}
+                className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-12 px-5 disabled:opacity-50"
               >
-                <div className="flex justify-center mb-6">
-                  {feature.icon}
-                </div>
-                <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+                {loading ? "Processing..." : "Search"}
+              </button>
+            </div>
+          </form>
+        )}
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-xl overflow-hidden">
-            <div className="p-10 md:p-16 text-white text-center">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Find Your Dream Home?</h2>
-              <p className="text-xl mb-8 text-blue-100">
-                Join thousands of satisfied customers who found their perfect property with us
-              </p>
-              <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <Button 
-                  asChild
-                  size="lg" 
-                  className="bg-white text-blue-700 hover:bg-blue-50"
+        {step === "questions" && (
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold mb-4">Let's clarify your search</h2>
+            <p className="mb-4 text-gray-600 dark:text-gray-400">{expandedQuery}</p>
+            
+            <form onSubmit={handleResponsesSubmit} className="flex flex-col gap-4">
+              {clarifyingQuestions.map((question, index) => (
+                <div key={index} className="mb-4">
+                  <label htmlFor={`response-${index}`} className="block mb-2 font-medium">
+                    {question}
+                  </label>
+                  <input
+                    id={`response-${index}`}
+                    type="text"
+                    value={responses[index]}
+                    onChange={(e) => handleResponseChange(index, e.target.value)}
+                    className="w-full p-3 border rounded-md dark:bg-gray-800 dark:border-gray-700"
+                    required
+                  />
+                </div>
+              ))}
+              
+              <div className="flex gap-4">
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-12 px-5"
                 >
-                  <Link href="/properties/search">
-                    Browse Properties <Search className="ml-2 h-5 w-5" />
-                  </Link>
-                </Button>
-                <Button 
-                  asChild
-                  size="lg" 
-                  variant="outline" 
-                  className="border-white text-white hover:bg-white/10"
+                  Start Over
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-12 px-5 disabled:opacity-50"
                 >
-                  <Link href="/auth/register">
-                    Create Account <ArrowRight className="ml-2 h-5 w-5" />
-                  </Link>
-                </Button>
+                  {loading ? "Searching..." : "Find Properties"}
+                </button>
               </div>
+            </form>
+          </div>
+        )}
+
+        {step === "results" && (
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold">Search Results</h2>
+              <button
+                onClick={handleReset}
+                className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm h-10 px-4"
+              >
+                New Search
+              </button>
+            </div>
+            
+            {properties.length === 0 ? (
+              <p className="text-center py-8 text-gray-600 dark:text-gray-400">
+                No properties found matching your criteria.
+              </p>
+            ) : (
+              <div className="grid gap-6">
+                {properties.map((property, index) => (
+                  <div key={index} className="border rounded-lg p-4 dark:border-gray-700">
+                    <h3 className="text-lg font-semibold mb-2">
+                      {property.address || "Property"} {property.city && `- ${property.city}`}
+                    </h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Price</p>
+                        <p className="font-medium">${property.list_price?.toLocaleString() || "N/A"}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Beds</p>
+                        <p className="font-medium">{property.beds || "N/A"}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Baths</p>
+                        <p className="font-medium">{property.full_baths || "N/A"}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Sq Ft</p>
+                        <p className="font-medium">{property.sqft?.toLocaleString() || "N/A"}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Year Built</p>
+                        <p className="font-medium">{property.year_built || "N/A"}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Property Type</p>
+                        <p className="font-medium">{property.property_type || "N/A"}</p>
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Description</p>
+                      <p className="text-sm mt-1">{property.description?.substring(0, 200) || "No description available"}...</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold mb-2">Raw JSON Response</h3>
+              <pre className="bg-gray-100 dark:bg-gray-800 p-4 rounded-md overflow-auto text-xs">
+                {JSON.stringify(properties, null, 2)}
+              </pre>
             </div>
           </div>
-        </div>
-      </section>
+        )}
+
+        {error && (
+          <div className="mt-4 p-4 bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300 rounded-md">
+            {error}
+          </div>
+        )}
+      </main>
     </div>
   );
 }

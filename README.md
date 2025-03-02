@@ -1,65 +1,24 @@
-# Estate Agent Frontend
-
-A Next.js application for homebuyers to browse properties, create accounts, and get personalized mortgage analysis.
-
-## Features
-
-- User authentication with Supabase
-- Property browsing and searching
-- Detailed property views with mortgage calculations
-- User dashboard with saved properties
-- Responsive design with Shadcn UI components
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
 
-1. Clone the repository
-2. Install dependencies:
-
-```bash
-npm install
-```
-
-3. Set up environment variables:
-   - Create a `.env.local` file in the root directory
-   - Add the following variables:
-
-```
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-NEXT_PUBLIC_API_URL=http://localhost:8000/api
-```
-
-4. Run the development server:
+First, run the development server:
 
 ```bash
 npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Authentication Flow
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-The application uses Supabase for authentication:
-
-1. Users can register with email and password
-2. Login with email and password
-3. Protected routes require authentication
-4. User session is maintained across page refreshes
-
-## Project Structure
-
-- `/app` - Next.js app router pages
-- `/components` - Reusable UI components
-- `/lib` - Utility functions and API clients
-- `/public` - Static assets
-
-## Technologies Used
-
-- Next.js
-- TypeScript
-- Supabase
-- Tailwind CSS
-- Shadcn UI
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More
 
